@@ -6,9 +6,12 @@ import socket
 import sys
 import argparse
 
+## Currently runs via command line, I would like to switch it to have it run via the main program.
+
 
 parser = argparse.ArgumentParser(description="Packet Sniffer")
 parser.add_argument("--ip", help="IP address to sniff on", required=True)
+parser.add_argument("--proto", help="Protocol to sniff(TCP/ICMP)", required=True)
 opts = parser.parse_args()
 
 
@@ -38,8 +41,9 @@ class Packet:
 
         self.src_addr = ipaddress.ip_address(self.src)
         self.dst_addr = ipaddress.ip_address(self.dst)
-        # Mapping to ICMP
-        self.protocol_map = {1: "ICMP"}
+
+        # protocol mapping
+        self.protocol_map = {1: "ICMP", 6: "TCP"}
 
         try:
             self.protocol = self.protocol_map[self.pro]
@@ -48,15 +52,31 @@ class Packet:
             self.protocol = str(self.pro)
 
 
-def sniff(host):
+def print_header(self):
+    print(f"protocol: {self.protocol} {self.src_addr} -> {self.dst_addr}\t")
+    print(f"Service Type: {self.tos}\n")
 
-    socket_protocol = socket.IPPROTO_ICMP
+
+def sniff(host):
+    if ops.proto == "tcp":
+        socket_protocol = socket.IPPROTO_TCP
+    else:
+        socket_protocol = socket.IPPROTO_ICMP
     sniffer = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket_protocol)
     # Not bindint to any port to catch all traffic
     sniffer.bind((host, 0))
     sniffer.setsockopt(socket.IPPROTO_ICMP, socket.IP_HDRINCL, 1)
 
+    try:
+        while True:
+            raw_data = sniffer.recv(65535)
+            packet = Packet(raw_data)
+            packet.print_header()
+    except KeyboardInterrupt:
+        sys.exit
+
 
 if __name__ == "__main__":
     # Command line argument for designating IP
+    # use --ip <IP ADDRESS>
     sniff(opts.ip)
