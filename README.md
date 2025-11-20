@@ -17,5 +17,17 @@ model to identify previously unseen or unfiltered ad servers. There are a few
 implementations of adware filtering and detection algorithms that use DNS sinkholes,
 sending the unwanted traffic to another server: e.g. `https://ieeexploredev.ieee.org/document/10569643`, pi-hole, AdGuard Home, NextDNS
 
- - Strech goal: Adding ML/LLM to supplement and increase reliability of filtering
- - Professor said this proposal with the stretch goal included is good. 
+- Strech goal: Adding ML/LLM to supplement and increase reliability of filtering
+- Professor said this proposal with the stretch goal included is good.
+
+### Sniffer.py
+
+Scans network traffic, breaks them up into chunks, and writes the following to a CSV file within the sniffer directory.
+
+- Source IP
+- Destination IP
+- Protocol
+- Type of service
+
+If needed we can add more or less to the array that will export to the CSV.
+This is so we can see if the scripting misses any traffic and make adjustments. Possibly adding in a "Blocked" segment to the file to indicate.
