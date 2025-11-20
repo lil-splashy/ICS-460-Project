@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-
-
 import ipaddress
 import socket
 import sys
 import argparse
 import struct
+import csv
 
 ## Currently runs via command line, I would like to switch it to have it run via the main program.
 
@@ -48,6 +47,7 @@ class Packet:
 
         try:
             self.protocol = self.protocol_map[self.pro]
+            self.export = [self.src_addr, self.dst_addr, self.pro, self.tos]
         except Exception as e:
             print(f"{e} No protocol for {self.pro}")
             self.protocol = str(self.pro)
@@ -55,6 +55,13 @@ class Packet:
     def print_header(self):
         print(f"protocol: {self.protocol} {self.src_addr} -> {self.dst_addr}\t")
         print(f"Service Type: {self.tos}\n")
+
+    def output_traffic(self):
+        with open("network_traffic.csv", "w", newline="") as csvfile:
+            fieldNames = ["source", "destination", "Protocol", "Service"]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldNames)
+            writer.writeheader()
+            writer.writerows(self.export)
 
 
 def sniff(host):
@@ -72,6 +79,7 @@ def sniff(host):
             raw_data = sniffer.recv(65535)
             packet = Packet(raw_data)
             packet.print_header()
+            packet.output_traffic()
     except KeyboardInterrupt:
         sys.exit
 
