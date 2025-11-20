@@ -47,6 +47,7 @@ class Packet:
 
         try:
             self.protocol = self.protocol_map[self.pro]
+            # Modify export for what needs to be added to the CSV file.
             self.export = [self.src_addr, self.dst_addr, self.pro, self.tos]
         except Exception as e:
             print(f"{e} No protocol for {self.pro}")
