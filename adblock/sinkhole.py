@@ -78,7 +78,7 @@ class AdBlockResolver(BaseResolver): # handle DNS requests - block ads and forwa
 
 class DNSSinkholeServer:
 
-    def __init__(self, blocklist, host="127.0.0.1", port=5353, upstream_dns="8.8.8.8"):
+    def __init__(self, blocklist, host="127.0.0.1", port=5353):
         self.blocklist = blocklist
         self.host = host
         self.port = port
