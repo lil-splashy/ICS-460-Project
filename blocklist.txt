@@ -1,1 +1,26 @@
+# Test domains
 ads.com
+tracker.com
+analytics.net
+
+# Common ad networks
+doubleclick.net
+googleadservices.com
+google-analytics.com
+googlesyndication.com
+adservice.google.com
+adnxs.com
+advertising.com
+criteo.com
+outbrain.com
+taboola.com
+scorecardresearch.com
+
+# Social media trackers (cookies)
+facebook.com/tr
+connect.facebook.net
+analytics.twitter.com
+
+# Tracking domains
+metrics.com
+telemetry.mozilla.org
