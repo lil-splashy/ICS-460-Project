@@ -31,3 +31,16 @@ Scans network traffic, breaks them up into chunks, and writes the following to a
 
 If needed we can add more or less to the array that will export to the CSV.
 This is so we can see if the scripting misses any traffic and make adjustments. Possibly adding in a "Blocked" segment to the file to indicate.
+
+
+### Sinkhole.py
+
+DNS sinkhole (currently on 127.0.0.1) that intercepts DNS requests and blocks known ad domains (anything in blocklist.txt)
+Redirects them to 0.0.0.0
+
+Any domains not in the blocklist are sent upstream to googles DNS server at 8.8.8.8
+Demo script in demo.py shows what it is doing and prints logs from the python dnslib.
+
+Sniffer can identify new traffic that can be added to the block list.
+
+Run filter.py to start up the sinkhole server on 127.0.0.1
