@@ -4,15 +4,8 @@ import socket
 import sys
 import argparse
 import struct
-import csv
 
 ## Currently runs via command line, I would like to switch it to have it run via the main program.
-
-
-parser = argparse.ArgumentParser(description="Packet Sniffer")
-parser.add_argument("--ip", help="IP address to sniff on", required=True)
-parser.add_argument("--proto", help="Protocol to sniff(TCP/ICMP)", required=True)
-opts = parser.parse_args()
 
 
 class Packet:
@@ -26,14 +19,6 @@ class Packet:
         self.ihl = header[0] & 0xF
         # Type of Service
         self.tos = header[1]
-        self.len = header[2]
-        self.id = header[3]
-        self.off = header[4]
-        self.off = header[5]
-        # Protocol
-        self.pro = header[6]
-        # Checksum
-        self.num = header[7]
         # Source IP address
         self.src = header[8]
         # Desination IP address
@@ -45,47 +30,53 @@ class Packet:
         # protocol mapping
         self.protocol_map = {1: "ICMP", 6: "TCP"}
 
-        try:
-            self.protocol = self.protocol_map[self.pro]
-            # Modify export for what needs to be added to the CSV file.
-            self.export = [self.src_addr, self.dst_addr, self.pro, self.tos]
-        except Exception as e:
-            print(f"{e} No protocol for {self.pro}")
-            self.protocol = str(self.pro)
-
     def print_header(self):
-        print(f"protocol: {self.protocol} {self.src_addr} -> {self.dst_addr}\t")
-        print(f"Service Type: {self.tos}\n")
+        print(f"{self.src_addr} -> {self.dst_addr}\t")
 
-    def output_traffic(self):
-        with open("network_traffic.csv", "w", newline="") as csvfile:
-            fieldNames = ["source", "destination", "Protocol", "Service"]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldNames)
-            writer.writeheader()
-            writer.writerows(self.export)
+    # Use this to get source IP address for reference check.
+    def get_src_ip(self):
+        return self.src_addr
 
 
 def sniff(host):
-    if opts.proto == "tcp":
-        socket_protocol = socket.IPPROTO_TCP
-    else:
-        socket_protocol = socket.IPPROTO_ICMP
-    sniffer = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket_protocol)
-    # Not bindint to any port to catch all traffic
-    sniffer.bind((host, 0))
-    sniffer.setsockopt(socket.IPPROTO_ICMP, socket.IP_HDRINCL, 1)
+
+
+    sockets = []
 
     try:
-        while True:
-            raw_data = sniffer.recv(65535)
-            packet = Packet(raw_data)
-            packet.print_header()
-            packet.output_traffic()
+        # TCP socket
+        tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
+        tcp_socket.bind((host, 0))
+        tcp_socket.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
+        sockets.append(tcp_socket)
+        
+        # UDP socket (for DNS traffic)
+        udp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_UDP)
+        udp_socket.bind((host, 0))
+        udp_socket.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
+        sockets.append(udp_socket)
+        
+        # ICMP socket
+        icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
+        icmp_socket.bind((host, 0))
+        icmp_socket.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
+        sockets.append(icmp_socket)
+        
+    except PermissionError:
+        print("Error: Root privileges required for raw socket access")
+        return
+    except Exception as e:
+        print(f"Socket error: {e}")
+        return
+    
+                    
     except KeyboardInterrupt:
-        sys.exit
+        print("\nSniffer stopped.")
+    finally:
+        # Clean up sockets
+        for sock in sockets:
+            sock.close()
 
 
-if __name__ == "__main__":
-    # Command line argument for designating IP
-    # use --ip <IP ADDRESS>
-    sniff(opts.ip)
+
+
