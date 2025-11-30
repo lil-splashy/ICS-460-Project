@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import ipaddress
 import socket
-import sys
-import argparse
 import struct
 
 ## Currently runs via command line, I would like to switch it to have it run via the main program.
@@ -28,7 +26,7 @@ class Packet:
         self.dst_addr = ipaddress.ip_address(self.dst)
 
         # protocol mapping
-        self.protocol_map = {1: "ICMP", 6: "TCP"}
+        self.protocol_map = {1: "ICMP", 6: "TCP", 17: "UDP"}
 
     def print_header(self):
         print(f"{self.src_addr} -> {self.dst_addr}\t")

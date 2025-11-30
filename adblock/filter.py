@@ -4,10 +4,12 @@ Main ad filter
 import os
 from adblock import load_blocklist, DNSSinkholeServer
 
+
 def main():
     HOST = '127.0.0.1' # localhost for now. will change to monitor whatever ip we might use
     PORT = 5353
     UPSTREAM_DNS = '8.8.8.8'  # Google DNS
+
 
     # load blocklist from parent directory
     script_dir = os.path.dirname(os.path.abspath(__file__))

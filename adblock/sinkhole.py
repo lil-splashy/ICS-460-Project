@@ -3,30 +3,37 @@
 import socket
 from dnslib import DNSRecord, RR, QTYPE, A
 from dnslib.server import DNSServer, BaseResolver
+from sniffer import sniff, Packet
 
 
-class AdBlockResolver(BaseResolver): # handle DNS requests - block ads and forward others upstream
+class AdBlockResolver(
+    BaseResolver
+):  # handle DNS requests - block ads and forward others upstream
+
+    
+    
+
 
     def __init__(self, blocklist):
         self.blocklist = blocklist
-        self.upstream_dns = "8.8.8.8" # google dns
+        self.upstream_dns = "8.8.8.8"
         self.blocked_count = 0
         self.allowed_count = 0
+        # Cache to map IPs to domain names
+        self.ip_to_domain = {}
+
+
 
     def resolve(self, request, handler):
-        reply = request.reply() # grab request
-        domain = str(request.q.qname).lower().rstrip('.') # request domain name
-
-        if self.is_blocked(domain): # check if domain is blocked
+        reply = request.reply()
+        domain = str(request.q.qname).lower().rstrip(".")
+        
+        if self.is_blocked(domain):
             self.blocked_count += 1
-
-            if request.q.qtype == QTYPE.A: # if it's asking for ipv4, send to 0.0.0.0 to block it
-                reply.add_answer(RR(
-                    rname=request.q.qname,
-                    rtype=QTYPE.A,
-                    rdata=A("0.0.0.0"),
-                    ttl=60
-                ))
+            if request.q.qtype == QTYPE.A:
+                reply.add_answer(
+                    RR(rname=request.q.qname, rtype=QTYPE.A, rdata=A("0.0.0.0"), ttl=60)
+                )
             return reply
 
         # not blocked
@@ -36,20 +43,21 @@ class AdBlockResolver(BaseResolver): # handle DNS requests - block ads and forwa
         except:
             return reply
 
-    def is_blocked(self, domain): #check if domain is in blocklist
+    def is_blocked(self, domain):  # check if domain is in blocklist
         domain = domain.lower()
 
         if domain in self.blocklist:
             return True
 
         # also check parent domains
-        parts = domain.split('.')
+        parts = domain.split(".")
         for i in range(len(parts)):
-            parent = '.'.join(parts[i:])
+            parent = ".".join(parts[i:])
             if parent in self.blocklist:
                 return True
 
         return False
+    
 
     def forward_to_dns(self, request):
         # forward to upstream DNS resolver (Google DNS)
@@ -62,17 +70,24 @@ class AdBlockResolver(BaseResolver): # handle DNS requests - block ads and forwa
 
         try:
             sock.sendto(request.pack(), (self.upstream_dns, 53))
-            data, _ = sock.recvfrom(4096) # get response from upstream resolver (sender is ignored its google dns)
+            data, _ = sock.recvfrom(
+                4096
+            )  # get response from upstream resolver (sender is ignored its google dns)
             response = DNSRecord.parse(data)
             return response
         finally:
             sock.close()
 
+
+        # Lookup ip to match with domain
+    def lookup_domain(self, ip):
+        return self.ip_to_domain.get(str(ip), "Unknown")
+
     def get_stats(self):
         return {
-            'blocked': self.blocked_count,
-            'allowed': self.allowed_count,
-            'total': self.blocked_count + self.allowed_count
+            "blocked": self.blocked_count,
+            "allowed": self.allowed_count,
+            "total": self.blocked_count + self.allowed_count,
         }
 
 
@@ -89,9 +104,43 @@ class DNSSinkholeServer:
         self.server = DNSServer(self.resolver, port=self.port, address=self.host)
         self.server.start()
 
+
+    def start_sniffer(self):
+        try:
+            sniff(self.host)
+        except Exception as e:
+            print(f"Sniffer error: {e}")
+
+
     def stop(self):
         if self.server:
             self.server.stop()
 
     def get_stats(self):
         return self.resolver.get_stats()
+
+
+
+
+
+
+if __name__ == "__main__":
+    blocklist = {"ads.example.com", "tracker.example.com"}
+    
+    server = DNSSinkholeServer(blocklist, host="127.0.0.0", port=5353)
+    
+    try:
+        server.start()
+        server.start_sniffer()  # Start sniffer to monitor traffic
+        
+        print("\nDNS Sinkhole with traffic monitoring running...")
+        print("Press Ctrl+C to stop\n")
+        
+        # Keep running
+        import time
+        while True:
+            time.sleep(1)
+            
+    except KeyboardInterrupt:
+        print("\nStopping...")
+        server.stop()
