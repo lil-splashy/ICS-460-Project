@@ -43,7 +43,7 @@ def test_dns_query(domain, dns_server='127.0.0.1', dns_port=5353):
 def main():
     print("\n- Loading blocklist")
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    blocklist_path = os.path.join(os.path.dirname(script_dir), 'blocklist.txt')
+    blocklist_path = os.path.join(script_dir, 'blocklist.txt')
     blocklist = load_blocklist(blocklist_path)
     print(f"{len(blocklist)} blocked domains")
 
