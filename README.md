@@ -44,3 +44,12 @@ Demo script in demo.py shows what it is doing and prints logs from the python dn
 Sniffer can identify new traffic that can be added to the block list.
 
 Run filter.py to start up the sinkhole server on 127.0.0.1
+
+### AWS EC2 Instance
+
+https://us-east-2.console.aws.amazon.com/ec2/home?region=us-east-2#InstanceDetails:instanceId=i-0617f673e3b72df4d
+
+To connect, navigate to C:\..\ICS-460-Project or wherever you have the RSA key and run:
+ssh -i "adblock-key.pem" ubuntu@18.188.249.209
+
+exit with 'exit'
