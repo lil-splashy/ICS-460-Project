@@ -47,9 +47,9 @@ Run filter.py to start up the sinkhole server on 127.0.0.1
 
 ### AWS EC2 Instance
 
-https://us-east-2.console.aws.amazon.com/ec2/home?region=us-east-2#InstanceDetails:instanceId=i-0617f673e3b72df4d
+https://us-east-2.console.aws.amazon.com/ec2/home?region=us-east-2#InstanceDetails:instanceId=i-025a45e673ae0b765
 
 To connect, navigate to C:\..\ICS-460-Project or wherever you have the RSA key and run:
-ssh -i "adblock-key.pem" ubuntu@18.188.249.209
+ssh -i "sinkhole-key.pem" ubuntu@18.116.242.142
 
 exit with 'exit'
