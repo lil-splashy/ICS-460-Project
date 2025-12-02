@@ -69,7 +69,7 @@ chmod +x deploy.sh
 ./deploy.sh
 ```
 
-Run sinkhole server
+Run sinkhole server 
 ```powershell
 sudo python3 -m adblock.sinkhole
 ```
