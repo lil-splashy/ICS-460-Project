@@ -45,11 +45,37 @@ Sniffer can identify new traffic that can be added to the block list.
 
 Run filter.py to start up the sinkhole server on 127.0.0.1
 
-### AWS EC2 Instance
+### AWS EC2 t3.micro Instance
+- https://us-east-2.console.aws.amazon.com/ec2/home?region=us-east-2#InstanceDetails:instanceId=i-025a45e673ae0b765
+- 18.116.242.142
 
-https://us-east-2.console.aws.amazon.com/ec2/home?region=us-east-2#InstanceDetails:instanceId=i-025a45e673ae0b765
+***Deploy:***
 
-To connect, navigate to C:\..\ICS-460-Project or wherever you have the RSA key and run:
+To upload any updated project files
+```powershell
+cd C:\...\ICS-460-Project
+scp -i "sinkhole-key.pem" -r * ubuntu@18.116.242.142:~/ICS-460-Project/
+```
+
+Connect
+```powershell
 ssh -i "sinkhole-key.pem" ubuntu@18.116.242.142
+```
 
-exit with 'exit'
+Install dependencies (first run)
+```powershell
+cd ~/ICS-460-Project
+chmod +x deploy.sh
+./deploy.sh
+```
+
+Run sinkhole server
+```powershell
+sudo python3 -m adblock.sinkhole
+```
+
+From another machine or local, test queries
+```bash
+nslookup ads.com 18.116.242.142
+nslookup google.com 18.116.242.142
+```

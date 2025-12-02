@@ -38,36 +38,46 @@ class Packet:
 
 def sniff(host):
 
-
     sockets = []
 
     try:
         # TCP socket
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
-        tcp_socket.bind((host, 0))
         tcp_socket.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
         sockets.append(tcp_socket)
-        
+
         # UDP socket (for DNS traffic)
         udp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_UDP)
-        udp_socket.bind((host, 0))
         udp_socket.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
         sockets.append(udp_socket)
-        
+
         # ICMP socket
         icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
-        icmp_socket.bind((host, 0))
         icmp_socket.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
         sockets.append(icmp_socket)
-        
+
+        print(f"Sniffer listening on {host}")
+
+        # Main loop
+        while True:
+            for sock in sockets:
+                sock.settimeout(0.1)
+                try:
+                    data, addr = sock.recvfrom(65565)
+                    packet = Packet(data)
+                    packet.print_header()
+                except socket.timeout:
+                    continue
+                except Exception:
+                    continue
+
     except PermissionError:
         print("Error: Root privileges required for raw socket access")
         return
     except Exception as e:
         print(f"Socket error: {e}")
         return
-    
-                    
+
     except KeyboardInterrupt:
         print("\nSniffer stopped.")
     finally:

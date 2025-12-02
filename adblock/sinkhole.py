@@ -23,21 +23,27 @@ class AdBlockResolver(
         self.ip_to_domain = {}
 
 
-
+    # Handle DNS request
     def resolve(self, request, handler):
         reply = request.reply()
         domain = str(request.q.qname).lower().rstrip(".")
-        
+        qtype = QTYPE[request.q.qtype]
+
+        # blocked domain
         if self.is_blocked(domain):
             self.blocked_count += 1
-            if request.q.qtype == QTYPE.A:
+            print(f"[BLOCKED] {domain} ({qtype})")
+            if request.q.qtype == QTYPE.A: # ipv4 - reroute to 0.0.0.0
                 reply.add_answer(
                     RR(rname=request.q.qname, rtype=QTYPE.A, rdata=A("0.0.0.0"), ttl=60)
                 )
+            elif request.q.qtype == QTYPE.AAAA: #ipv6 doesn't need to reroute to 0.0.0.0. empty response works as a block
+                pass
             return reply
 
         # not blocked
         self.allowed_count += 1
+        print(f"[ALLOWED] {domain} ({qtype})")
         try:
             return self.forward_to_dns(request)
         except:
@@ -102,7 +108,7 @@ class DNSSinkholeServer:
 
     def start(self):
         self.server = DNSServer(self.resolver, port=self.port, address=self.host)
-        self.server.start()
+        self.server.start_thread()
 
 
     def start_sniffer(self):
@@ -125,22 +131,51 @@ class DNSSinkholeServer:
 
 
 if __name__ == "__main__":
-    blocklist = {"ads.example.com", "tracker.example.com"}
-    
-    server = DNSSinkholeServer(blocklist, host="127.0.0.0", port=5353)
-    
+    import os
+    import sys
+    import time
+    import threading
+    from .blocklist import load_blocklist
+
+    if os.geteuid() != 0:
+        print("This script must be run as root (sudo)")
+        sys.exit(1)
+
+    blocklist_path = os.path.join(os.path.dirname(__file__), "..", "blocklist.txt")
+    blocklist_path = os.path.abspath(blocklist_path)
+
     try:
+        blocklist = load_blocklist(blocklist_path)
+        print(f"Loaded {len(blocklist)} blocked domains")
+    except FileNotFoundError:
+        print(f"Error: Blocklist file not found at {blocklist_path}")
+        sys.exit(1)
+
+    server = DNSSinkholeServer(blocklist, host="0.0.0.0", port=53)
+
+    try:
+        print("\n[Server] Starting DNS Sinkhole at 0.0.0.0:53")
+
         server.start()
-        server.start_sniffer()  # Start sniffer to monitor traffic
-        
-        print("\nDNS Sinkhole with traffic monitoring running...")
-        print("Press Ctrl+C to stop\n")
-        
-        # Keep running
-        import time
+        time.sleep(1)
+
+        # sniffer_thread = threading.Thread(target=server.start_sniffer, daemon=True)
+        # sniffer_thread.start()
+        # time.sleep(0.5)
+
+        print("--- Monitoring DNS Traffic ---")
         while True:
-            time.sleep(1)
-            
+            cmd = input("cmds: 'stats' or 'exit'\n")
+            if cmd.lower() == "stats":
+                stats = server.get_stats()
+                print(
+                    f"Blocked: {stats['blocked']}, Allowed: {stats['allowed']}, Total: {stats['total']}"
+                )
+            elif cmd.lower() == "exit":
+                break
+            else :
+                print("Unknown command")
+
     except KeyboardInterrupt:
-        print("\nStopping...")
         server.stop()
+        print("Server stopped.")
