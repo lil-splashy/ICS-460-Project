@@ -1,1 +1,5 @@
+# shell scripts should use LF line endings for unix in EC2 instance
+*.sh text eol=lf
+*.py text eol=lf
+* text=auto
 blocklist.txt filter=lfs diff=lfs merge=lfs -text
