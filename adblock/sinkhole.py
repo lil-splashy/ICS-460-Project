@@ -163,7 +163,7 @@ if __name__ == "__main__":
         # sniffer_thread.start()
         # time.sleep(0.5)
 
-        print("--- Monitoring DNS Traffic ---")
+        print("Monitoring DNS Traffic through 18.116.242.142")
         while True:
             cmd = input("cmds: 'stats' or 'exit'\n")
             if cmd.lower() == "stats":

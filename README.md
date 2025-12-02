@@ -35,15 +35,12 @@ This is so we can see if the scripting misses any traffic and make adjustments. 
 
 ### Sinkhole.py
 
-DNS sinkhole (currently on 127.0.0.1) that intercepts DNS requests and blocks known ad domains (anything in blocklist.txt)
+DNS sinkhole that intercepts DNS requests and blocks known ad domains (anything in blocklist.txt)
 Redirects them to 0.0.0.0
 
 Any domains not in the blocklist are sent upstream to googles DNS server at 8.8.8.8
-Demo script in demo.py shows what it is doing and prints logs from the python dnslib.
 
 Sniffer can identify new traffic that can be added to the block list.
-
-Run filter.py to start up the sinkhole server on 127.0.0.1
 
 ### AWS EC2 t3.micro Instance
 - https://us-east-2.console.aws.amazon.com/ec2/home?region=us-east-2#InstanceDetails:instanceId=i-025a45e673ae0b765
@@ -75,7 +72,7 @@ sudo python3 -m adblock.sinkhole
 ```
 
 From another machine or local, test queries
-```bash
+```powershell
 nslookup ads.com 18.116.242.142
 nslookup google.com 18.116.242.142
 ```
