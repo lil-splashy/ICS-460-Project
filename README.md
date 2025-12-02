@@ -62,8 +62,8 @@ ssh -i "sinkhole-key.pem" ubuntu@18.116.242.142
 Install dependencies (first run)
 ```powershell
 cd ~/ICS-460-Project
-chmod +x deploy.sh
-./deploy.sh
+chmod +x install.sh
+./install.sh
 ```
 
 Run sinkhole server 
