@@ -1,4 +1,4 @@
-from . import blocklist
-from .blocklist import is_blocked, load_blocklist
+from .sniffer import sniff, Packet
 
-__all__ = ["is_blocked", "load_blocklist", "blocklist"]
+__all__ = ["sniff", "Packet"]
+
