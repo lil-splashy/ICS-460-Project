@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # DNS Sinkhole - blocks ads by returning 0.0.0.0
 # Forwards legitimate DNS queries to upstream resolver at Google DNS (8.8.8.8)
+import os
+import sys
+import time
+import threading
+from blocklist import load_blocklist
 import socket
 from dnslib import DNSRecord, RR, QTYPE, A
 from dnslib.server import DNSServer, BaseResolver
@@ -126,11 +131,7 @@ class DNSSinkholeServer:
 
 
 if __name__ == "__main__":
-    import os
-    import sys
-    import time
-    import threading
-    from .blocklist import load_blocklist
+
 
 
    
