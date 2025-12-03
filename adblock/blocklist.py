@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from typing import Set
 
 def load_blocklist(path: str) -> Set[str]:

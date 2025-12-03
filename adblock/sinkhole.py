@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
 # DNS Sinkhole - blocks ads by returning 0.0.0.0
 # Forwards legitimate DNS queries to upstream resolver at Google DNS (8.8.8.8)
 import socket
 from dnslib import DNSRecord, RR, QTYPE, A
 from dnslib.server import DNSServer, BaseResolver
-from sniffer import sniff, Packet
+from sniffer import sniff
+from dnsreport import DNSReporter, print_banner
 
 
 class AdBlockResolver(
@@ -11,9 +13,6 @@ class AdBlockResolver(
 ):  # handle DNS requests - block ads and forward others upstream
 
     
-    
-
-
     def __init__(self, blocklist):
         self.blocklist = blocklist
         self.upstream_dns = "8.8.8.8"
@@ -126,16 +125,15 @@ class DNSSinkholeServer:
         return self.resolver.get_stats()
 
 
-
-
-
-
 if __name__ == "__main__":
     import os
     import sys
     import time
     import threading
     from .blocklist import load_blocklist
+
+
+   
 
     if os.geteuid() != 0:
         print("This script must be run as root (sudo)")
@@ -159,22 +157,32 @@ if __name__ == "__main__":
         server.start()
         time.sleep(1)
 
+        ''' Start report handler '''
+        reporter = DNSReporter(server.resolver)
+        print_banner()
         # sniffer_thread = threading.Thread(target=server.start_sniffer, daemon=True)
         # sniffer_thread.start()
         # time.sleep(0.5)
 
         print("Monitoring DNS Traffic through 18.116.242.142")
+        # Command Loop
         while True:
-            cmd = input("cmds: 'stats' or 'exit'\n")
-            if cmd.lower() == "stats":
-                stats = server.get_stats()
-                print(
-                    f"Blocked: {stats['blocked']}, Allowed: {stats['allowed']}, Total: {stats['total']}"
-                )
-            elif cmd.lower() == "exit":
+            cmd = input("\n> ").strip().lower()
+    
+            if cmd == 'stats':
+                reporter.print_summary()
+            elif cmd == 'report':
+                reporter.print_full_report()
+            elif cmd == 'blocked':
+                reporter.print_top_blocked()
+            elif cmd == 'allowed':
+                reporter.print_top_allowed()
+            elif cmd == 'export':
+                reporter.export_csv()
+            elif cmd == 'clear':
+                os.system('clear' if os.name != 'nt' else 'cls')
+            elif cmd == 'exit':
                 break
-            else :
-                print("Unknown command")
 
     except KeyboardInterrupt:
         server.stop()
