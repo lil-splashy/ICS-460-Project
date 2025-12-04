@@ -31,16 +31,16 @@ Top-level files:
 Inside `adblock/`:
 - `sinkhole.py` - DNSSinkholeServer and AdBlockResolver classes. Resolves queries by checking the blocklist and either returning 0.0.0.0 for blocked A-records or forwarding the query to an upstream resolver (Cloudflare 1.1.1.1). Keeps simple statistics and a mapping of resolved IP -> domain.
 - `sniffer.py` - NetworkSniffer that listens for network traffic and correlates IP <-> domain using the resolver's mapping. Exports CSVs for later analysis.
-- `demo.py` - Demo and test harness. Can run an interactive sinkhole + CLI, or generate DNS traffic (quick, burst, demo modes) against a target DNS server.
+- `demo.py` - Demo and test harness. Can run an interactive sinkhole + CLI, or generate DNS traffic against the DNS server.
 - `dnsreport.py` - Reporter that aggregates allowed/blocked counts and prints reports and top lists.
 - `blocklist.py` - Helpers to load blocklist and benign lists and perform matching logic.
 
 
 ## Quick start (Linux host / server)
 
-These instructions assume you will run the sinkhole on a Linux machine (e.g. the provided EC2 t3.micro). The sinkhole needs to bind to UDP port 53 and therefore requires root privileges.
+These instructions assume you will run the sinkhole on a Linux machine (e.g. the provided EC2 t3.micro @ 18.116.242.142). The sinkhole needs to bind to UDP port 53 and therefore requires root privileges.
 
-1. Upload any udpated local files to server
+1. Upload any updated local files to server
 
 ```powershell
 scp -i "sinkhole-key.pem" -r C:\..\ICS-460-Project ubuntu@18.116.242.142:~/ICS-460-Project/
