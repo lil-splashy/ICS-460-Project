@@ -120,7 +120,7 @@ class DNSReporter:
         except Exception as e:
             print(f"\nError exporting CSV: {e}")
     
-    @staticmethod
+
     def _format_uptime(seconds):
         """Format uptime in human-readable format"""
         hours = int(seconds // 3600)
@@ -133,8 +133,7 @@ class DNSReporter:
             return f"{minutes}m {secs}s"
         else:
             return f"{secs}s"
-    
-    @staticmethod
+
     def _percent(part, total):
         """Calculate percentage safely"""
         if total == 0:
