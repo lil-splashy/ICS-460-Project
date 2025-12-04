@@ -12,6 +12,7 @@ from scapy.all import IP, TCP, UDP, Raw, send, conf, DNS, DNSQR
 
 # Disable verbose output from scapy
 conf.verb = 0
+dns_server = "0.0.0.0"
 
 def generate_random_ip():
     # Avoid private ranges and loopback
@@ -32,38 +33,8 @@ def generate_random_ip():
 
         return ip
 
-def generate_known_ad_domains():
-    """Return list of known ad domains for testing"""
-    return [
-        "doubleclick.net",
-        "googlesyndication.com",
-        "googleadservices.com",
-        "ads.yahoo.com",
-        "facebook.com",
-        "pagead2.googlesyndication.com",
-        "adservice.google.com",
-        "static.ads-twitter.com",
-        "ads.reddit.com",
-        "ads.linkedin.com",
-    ]
 
-def generate_benign_domains():
-    """Return list of benign domains for testing"""
-    return [
-        "google.com",
-        "github.com",
-        "stackoverflow.com",
-        "wikipedia.org",
-        "python.org",
-        "reddit.com",
-        "twitter.com",
-        "youtube.com",
-        "amazon.com",
-        "cloudflare.com",
-    ]
-
-def send_dns_query(domain, dns_server="127.0.0.1", dns_port=53):
-    """Send a DNS query to the sinkhole server"""
+def send_dns_query(domain, dns_server, dns_port=53):
     try:
         # Create DNS query packet
         dns_packet = IP(dst=dns_server) / UDP(dport=dns_port) / DNS(rd=1, qd=DNSQR(qname=domain))
@@ -105,17 +76,7 @@ def generate_https_packet(dst_ip, dst_port=443, src_port=None):
 
     return packet
 
-def run_traffic_demo(duration=60, packet_rate=2.0, dns_server="127.0.0.1", dns_port=53):
-    """
-    Generate simulated DNS traffic
-
-    Args:
-        duration: How long to run (seconds)
-        packet_rate: Queries per second
-        dns_server: DNS server address (default: 127.0.0.1)
-        dns_port: DNS server port (default: 53)
-    """
-
+def run_traffic_demo(duration=60, packet_rate=2.0, dns_server="0.0.0.0", dns_port=53):
     print("="*70)
     print("DNS TRAFFIC SIMULATOR")
     print("="*70)
@@ -124,10 +85,8 @@ def run_traffic_demo(duration=60, packet_rate=2.0, dns_server="127.0.0.1", dns_p
     print(f"Target DNS: {dns_server}:{dns_port}")
     print("Generating DNS queries to test ad blocking...")
     print("="*70 + "\n")
-
-    # Get domain lists
-    ad_domains = generate_known_ad_domains()
-    benign_domains = generate_benign_domains()
+    
+    
 
     print(f"Loaded {len(ad_domains)} ad domains and {len(benign_domains)} benign domains\n")
 

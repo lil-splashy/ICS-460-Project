@@ -6,7 +6,7 @@ import sys
 import time
 import socket
 import threading
-from blocklist import load_blocklist, is_blocked
+from blocklist import load_blocklist, is_blocked, check_and_categorize
 from dnslib import DNSRecord, RR, QTYPE, A
 from dnslib.server import DNSServer, BaseResolver
 from sniffer import NetworkSniffer
@@ -14,27 +14,31 @@ from dnsreport import DNSReporter, print_banner
 
 class AdBlockResolver(BaseResolver):
 
-    def __init__(self, blocklist, reporter=None):
+    def __init__(self, blocklist, reporter=None, benign_path=None):
         self.blocklist = blocklist
         self.upstream_dns = "1.1.1.1"  # Cloudflare DNS
         self.blocked_count = 0
         self.allowed_count = 0
         self.ip_to_domain = {}
-        self.reporter = reporter  
+        self.reporter = reporter
+        self.benign_path = benign_path or os.path.join(os.path.dirname(__file__), "..", "benign_domains.txt")  
 
     def resolve(self, request, handler):
         reply = request.reply()
         domain = str(request.q.qname).lower().rstrip(".")
         qtype = QTYPE[request.q.qtype]
 
+        # Check and categorize the domain
+        category = check_and_categorize(domain, self.blocklist, self.benign_path)
+
         # blocked domain
-        if self.is_blocked(domain):
+        if category == "blocked":
             self.blocked_count += 1
             print(f"[BLOCKED] {domain} ({qtype})")
-            
+
             if self.reporter:
                 self.reporter.log_blocked(domain)
-            
+
             if request.q.qtype == QTYPE.A:
                 reply.add_answer(
                     RR(rname=request.q.qname, rtype=QTYPE.A, rdata=A("0.0.0.0"), ttl=60)
@@ -43,10 +47,10 @@ class AdBlockResolver(BaseResolver):
                 pass
             return reply
 
-        # not blocked
+        # not blocked - benign (automatically added to benign list)
         self.allowed_count += 1
-        print(f"[ALLOWED] {domain} ({qtype})")
-        
+        print(f"[ALLOWED] {domain} ({qtype}) - added to benign list")
+
         if self.reporter:
             self.reporter.log_allowed(domain)
         
@@ -104,11 +108,11 @@ class AdBlockResolver(BaseResolver):
 
 class DNSSinkholeServer:
 
-    def __init__(self, blocklist, host="127.0.0.1", port=5353, reporter=None):
+    def __init__(self, blocklist, host="0.0.0.0", port=5353, reporter=None, benign_path=None):
         self.blocklist = blocklist
         self.host = host
         self.port = port
-        self.resolver = AdBlockResolver(blocklist, reporter=reporter) 
+        self.resolver = AdBlockResolver(blocklist, reporter=reporter, benign_path=benign_path)
         self.server = None
 
     def start(self):

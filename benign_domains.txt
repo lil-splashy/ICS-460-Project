@@ -1,0 +1,22 @@
+# Benign domains for testing
+# These domains should NOT be blocked by the DNS sinkhole
+google.com
+github.com
+stackoverflow.com
+wikipedia.org
+python.org
+reddit.com
+twitter.com
+youtube.com
+amazon.com
+cloudflare.com
+microsoft.com
+apple.com
+netflix.com
+linkedin.com
+espn.com
+cnn.com
+bbc.com
+nytimes.com
+weather.com
+spotify.com
