@@ -171,7 +171,6 @@ class NetworkSniffer:
         }
 
     def print_stats(self):
-        """Print formatted statistics"""
         print("\n" + "="*60)
         print("SNIFFER STATISTICS")
         print("="*60)

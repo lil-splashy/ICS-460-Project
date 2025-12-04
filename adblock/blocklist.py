@@ -27,7 +27,6 @@ def load_blocklist(path: str) -> Set[str]:
     return entries
 
 def load_benign_list(path: str) -> Set[str]:
-    """Load benign domains list"""
     entries: Set[str] = set()
     if not os.path.exists(path):
         return entries
@@ -41,7 +40,6 @@ def load_benign_list(path: str) -> Set[str]:
     return entries
 
 def add_to_benign_list(domain: str, path: str):
-    """Add a domain to the benign list if it's not already there"""
     domain = domain.lower().rstrip(".")
 
     # Check if domain already in benign list
@@ -56,10 +54,6 @@ def add_to_benign_list(domain: str, path: str):
     return True
 
 def is_blocked(url: str, entries: Set[str]) -> bool:
-    """Check if URL/domain is in blocklist.
-    Also checks parent domains (e.g., if ads.example.com is queried,
-    it checks both ads.example.com and example.com)
-    """
     url = url.lower().rstrip(".")
 
     # Direct match
@@ -76,10 +70,6 @@ def is_blocked(url: str, entries: Set[str]) -> bool:
     return False
 
 def check_and_categorize(domain: str, blocklist: Set[str], benign_path: str) -> str:
-    """
-    Check if a domain is blocked. If not blocked, add it to benign list.
-    Returns: "blocked" if in blocklist, "benign" if not
-    """
     domain = domain.lower().rstrip(".")
 
     if is_blocked(domain, blocklist):
