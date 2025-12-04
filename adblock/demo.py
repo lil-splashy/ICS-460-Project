@@ -211,6 +211,118 @@ def run_burst_test(burst_size=10):
     print("Burst complete!")
     print("="*70)
 
+def run_with_main():
+    """Run the demo with the main DNS sinkhole server for interactive statistics"""
+    import os
+    import sys
+    import threading
+    from blocklist import load_blocklist
+    from sniffer import NetworkSniffer
+    from dnsreport import DNSReporter, print_banner
+    from sinkhole import DNSSinkholeServer
+
+    blocklist_path = os.path.join(os.path.dirname(__file__), "..", "blocklist.txt")
+    blocklist_path = os.path.abspath(blocklist_path)
+
+    try:
+        blocklist = load_blocklist(blocklist_path)
+        print(f"Loaded {len(blocklist)} blocked domains")
+    except FileNotFoundError:
+        print(f"Error: Blocklist file not found at {blocklist_path}")
+        sys.exit(1)
+
+    # Create server
+    server = DNSSinkholeServer(blocklist, host="0.0.0.0", port=53)
+
+    # Create sniffer
+    sniffer = NetworkSniffer(host="0.0.0.0", resolver=server.resolver)
+
+    # Create reporter
+    reporter = DNSReporter(server.resolver)
+
+    # Link reporter to resolver
+    server.resolver.reporter = reporter
+
+    try:
+        print("\n[Server] Starting DNS Sinkhole at 0.0.0.0:53")
+        server.start()
+        time.sleep(1)
+
+        sniffer.start()
+        time.sleep(0.5)
+
+        print_banner()
+        print("Monitoring DNS Traffic")
+        print("\nDemo mode: Traffic generation is available in background")
+        print("Use 'generate' command to start traffic generation\n")
+
+        # Traffic generation thread
+        traffic_thread = None
+        traffic_running = False
+
+        while True:
+            cmd = input("cmds: 'stats', 'report', 'blocked', 'allowed', 'export', 'generate', 'clear', or 'exit'\n> ").strip().lower()
+
+            if cmd == "stats":
+                reporter.print_summary()
+
+            elif cmd == "report":
+                reporter.print_full_report()
+
+            elif cmd == "blocked":
+                reporter.print_top_blocked()
+
+            elif cmd == "allowed":
+                reporter.print_top_allowed()
+
+            elif cmd == "export":
+                filename = input("Enter filename (default: dns_report.csv): ").strip()
+                if not filename:
+                    filename = "dns_report.csv"
+                reporter.export_csv(filename)
+
+            elif cmd == "generate":
+                if traffic_running:
+                    print("Traffic generation already running!")
+                else:
+                    duration_input = input("Duration in seconds (default: 60): ").strip()
+                    rate_input = input("Packets per second (default: 2.0): ").strip()
+
+                    duration_val = int(duration_input) if duration_input else 60
+                    rate_val = float(rate_input) if rate_input else 2.0
+
+                    print(f"Starting traffic generation: {duration_val}s at {rate_val} pkt/s")
+                    traffic_running = True
+
+                    def run_traffic():
+                        nonlocal traffic_running
+                        run_traffic_demo(duration_val, rate_val)
+                        traffic_running = False
+                        print("\n\nTraffic generation completed!")
+                        print("Type a command to continue...\n")
+
+                    traffic_thread = threading.Thread(target=run_traffic, daemon=True)
+                    traffic_thread.start()
+
+            elif cmd == "clear":
+                os.system('clear' if os.name == 'posix' else 'cls')
+                print_banner()
+
+            elif cmd == "exit":
+                print("Shutting down...")
+                break
+
+            else:
+                print("Unknown command. Available: stats, report, blocked, allowed, export, generate, clear, exit")
+
+    except KeyboardInterrupt:
+        print("\n\nShutting down...")
+    finally:
+        sniffer.stop()
+        server.stop()
+        print("Server stopped.")
+
+
 if __name__ == "__main__":
     import sys
     import os
@@ -225,11 +337,15 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         mode = sys.argv[1]
     else:
-        mode = "demo"
+        mode = "interactive"
 
     print("\n")
 
-    if mode == "quick":
+    if mode == "interactive" or mode == "main":
+        print("Starting interactive mode with DNS sinkhole...")
+        run_with_main()
+
+    elif mode == "quick":
         print("Running quick test...")
         run_quick_test()
 
@@ -256,8 +372,18 @@ if __name__ == "__main__":
 
     else:
         print("Usage:")
-        print("  sudo python3 demo.py                    - Run demo (60s, 2 pkt/s)")
-        print("  sudo python3 demo.py quick              - Send a few test packets")
-        print("  sudo python3 demo.py burst [count]      - Send burst of packets")
-        print("  sudo python3 demo.py demo [dur] [rate]  - Custom duration and rate")
+        print("  sudo python3 demo.py                       - Interactive mode with stats (default)")
+        print("  sudo python3 demo.py interactive           - Same as above")
+        print("  sudo python3 demo.py quick                 - Send a few test packets")
+        print("  sudo python3 demo.py burst [count]         - Send burst of packets")
+        print("  sudo python3 demo.py demo [dur] [rate]     - Traffic generation only")
+        print("\nInteractive mode commands:")
+        print("  stats      - Show summary statistics")
+        print("  report     - Show full report")
+        print("  blocked    - Show top blocked domains")
+        print("  allowed    - Show top allowed domains")
+        print("  export     - Export report to CSV")
+        print("  generate   - Start traffic generation")
+        print("  clear      - Clear screen")
+        print("  exit       - Stop and exit")
         print("\nNote: This script requires root privileges for packet injection")
