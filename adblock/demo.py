@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""
-Demo script to simulate network traffic for testing the DNS sinkhole sniffer.
-This script generates packets with random IP addresses to simulate real traffic.
-"""
-
+ 
 import socket
 import struct
 import random
@@ -14,7 +10,6 @@ from scapy.all import IP, TCP, Raw, conf
 conf.verb = 0
 
 def generate_random_ip():
-    # Avoid private ranges and loopback
     while True:
         ip = f"{random.randint(1, 223)}.{random.randint(0, 255)}.{random.randint(0, 255)}.{random.randint(1, 254)}"
 
@@ -34,7 +29,6 @@ def generate_random_ip():
 
 
 def send_dns_query(domain, dns_server, dns_port=53):
-    """Send DNS query using standard socket (more reliable than scapy for localhost)"""
     try:
         from dnslib import DNSRecord
 
@@ -226,7 +220,6 @@ def run_quick_test(dns_server="127.0.0.1", dns_port=53):
     print("="*70)
 
 def run_burst_test(burst_size=10, dns_server="127.0.0.1", dns_port=53):
-    """Send a burst of DNS queries quickly"""
 
     print("="*70)
     print(f"BURST TEST - Sending {burst_size} DNS queries")

@@ -39,7 +39,6 @@ class DNSReporter:
         print("="*60 + "\n")
     
     def print_top_blocked(self, n=10):
-        """Print top N blocked domains"""
         if not self.blocked_domains:
             print("No blocked domains yet.\n")
             return
@@ -79,13 +78,11 @@ class DNSReporter:
         print("="*60 + "\n")
     
     def print_full_report(self):
-        """Print a comprehensive report"""
         self.print_summary()
         self.print_top_blocked()
         self.print_top_allowed()
     
     def print_hourly_summary(self):
-        """Print a compact hourly summary"""
         stats = self.resolver.get_stats()
         timestamp = datetime.now().strftime('%H:%M:%S')
         
@@ -94,7 +91,6 @@ class DNSReporter:
               f"Allowed: {stats['allowed']:>5}")
     
     def print_realtime_stats(self):
-        """Print real-time statistics in a compact format"""
         stats = self.resolver.get_stats()
         uptime = time.time() - self.start_time
         
@@ -105,7 +101,6 @@ class DNSReporter:
               end='', flush=True)
     
     def export_csv(self, filename="dns_report.csv"):
-        """Export blocked domains to CSV"""
         try:
             with open(filename, 'w') as f:
                 f.write("Domain,Hit Count,Type\n")
@@ -122,7 +117,6 @@ class DNSReporter:
     
 
     def format_uptime(self, seconds):
-        """Format uptime in human-readable format"""
         hours = int(seconds // 3600)
         minutes = int((seconds % 3600) // 60)
         secs = int(seconds % 60)
@@ -135,14 +129,12 @@ class DNSReporter:
             return f"{secs}s"
 
     def _percent(self, part, total):
-        """Calculate percentage safely"""
         if total == 0:
             return 0.0
         return round((part / total) * 100, 1)
 
 
 def print_banner():
-    """Print startup banner"""
     print("\n" + "="*60)
     print("    DNS SINKHOLE - Ad Blocking DNS Server")
     print("="*60)

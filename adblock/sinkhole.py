@@ -71,7 +71,6 @@ class AdBlockResolver(BaseResolver):
             return reply
 
     def forward_to_dns(self, request):
-        """Forward DNS request to upstream DNS server (Cloudflare)"""
         try:
             # Send DNS query to Cloudflare DNS
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -96,7 +95,6 @@ class AdBlockResolver(BaseResolver):
             return None
 
     def is_blocked(self, domain):
-        """Check if domain is in blocklist (uses enhanced matching with subdomain support)"""
         return is_blocked(domain, self.blocklist)
 
     def get_stats(self):
