@@ -8,7 +8,7 @@ import socket
 import struct
 import random
 import time
-from scapy.all import IP, TCP, UDP, Raw, send, conf, DNS, DNSQR
+from scapy.all import IP, TCP, Raw, conf
 
 # Disable verbose output from scapy
 conf.verb = 0
@@ -34,11 +34,33 @@ def generate_random_ip():
 
 
 def send_dns_query(domain, dns_server, dns_port=53):
+    """Send DNS query using standard socket (more reliable than scapy for localhost)"""
     try:
-        # Create DNS query packet
-        dns_packet = IP(dst=dns_server) / UDP(dport=dns_port) / DNS(rd=1, qd=DNSQR(qname=domain))
-        send(dns_packet, verbose=False)
-        return True
+        from dnslib import DNSRecord
+
+        # Create DNS query using dnslib (same library the server uses)
+        q = DNSRecord.question(domain, qtype="A")
+
+        # Send via UDP socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.settimeout(2.0)
+
+        # Send query
+        sock.sendto(q.pack(), (dns_server, dns_port))
+
+        # Receive response
+        try:
+            response_data, _ = sock.recvfrom(512)
+            sock.close()
+
+            # Parse response to confirm it was received
+            response = DNSRecord.parse(response_data)
+            return True
+        except socket.timeout:
+            sock.close()
+            print(f"  (Timeout - no response from DNS server)")
+            return False
+
     except Exception as e:
         print(f"Error sending DNS query: {e}")
         return False
