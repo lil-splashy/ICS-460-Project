@@ -12,7 +12,6 @@ from scapy.all import IP, TCP, UDP, Raw, send, conf, DNS, DNSQR
 
 # Disable verbose output from scapy
 conf.verb = 0
-dns_server = "0.0.0.0"
 
 def generate_random_ip():
     # Avoid private ranges and loopback
@@ -76,7 +75,7 @@ def generate_https_packet(dst_ip, dst_port=443, src_port=None):
 
     return packet
 
-def run_traffic_demo(duration=60, packet_rate=2.0, dns_server="0.0.0.0", dns_port=53):
+def run_traffic_demo(duration=60, packet_rate=2.0, dns_server="127.0.0.1", dns_port=53):
     print("="*70)
     print("DNS TRAFFIC SIMULATOR")
     print("="*70)
@@ -154,7 +153,7 @@ def run_traffic_demo(duration=60, packet_rate=2.0, dns_server="0.0.0.0", dns_por
     print(f"Actual rate: {query_count/elapsed:.2f} queries/second")
     print("="*70)
 
-def run_quick_test(dns_server="0.0.0.0", dns_port=53):
+def run_quick_test(dns_server="127.0.0.1", dns_port=53):
     """Send a few test DNS queries to verify setup"""
 
     print("="*70)
@@ -204,7 +203,7 @@ def run_quick_test(dns_server="0.0.0.0", dns_port=53):
 
     print("="*70)
 
-def run_burst_test(burst_size=10, dns_server="0.0.0.0", dns_port=53):
+def run_burst_test(burst_size=10, dns_server="127.0.0.1", dns_port=53):
     """Send a burst of DNS queries quickly"""
 
     print("="*70)
