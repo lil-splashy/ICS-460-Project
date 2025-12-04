@@ -63,6 +63,14 @@ class AdBlockResolver(BaseResolver):
             return response
         except:
             return reply
+        
+
+    def get_stats(self):
+        return {
+            "blocked": self.blocked_count,
+            "allowed": self.allowed_count,
+            "total": self.blocked_count + self.allowed_count,
+        }
 
 class DNSSinkholeServer:
 
@@ -78,6 +86,11 @@ class DNSSinkholeServer:
         self.server.start_thread()
 
 
+    def start_sniffer(self):
+        try:
+            sniff(self.host)
+        except Exception as e:
+            print(f"Sniffer error: {e}")
 
 
     def stop(self):
