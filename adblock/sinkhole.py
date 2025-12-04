@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
 # DNS Sinkhole - blocks ads by returning 0.0.0.0
-# Forwards legitimate DNS queries to upstream resolver at Google DNS (8.8.8.8)
+# Forwards legitimate DNS queries to upstream resolver at Cloudflare DNS (1.1.1.1)
 import os
 import sys
 import time
+import socket
 import threading
-from blocklist import load_blocklist
+from blocklist import load_blocklist, is_blocked
 from dnslib import DNSRecord, RR, QTYPE, A
 from dnslib.server import DNSServer, BaseResolver
 from sniffer import NetworkSniffer
 from dnsreport import DNSReporter, print_banner
 
 class AdBlockResolver(BaseResolver):
-    
+
     def __init__(self, blocklist, reporter=None):
         self.blocklist = blocklist
-        self.upstream_dns = "8.8.8.8"
+        self.upstream_dns = "1.1.1.1"  # Cloudflare DNS
         self.blocked_count = 0
         self.allowed_count = 0
         self.ip_to_domain = {}
@@ -61,9 +62,38 @@ class AdBlockResolver(BaseResolver):
                         print(f"[MAPPING] {ip} -> {domain}")
             
             return response
-        except:
+        except Exception as e:
+            print(f"[ERROR] Failed to forward DNS query: {e}")
             return reply
-        
+
+    def forward_to_dns(self, request):
+        """Forward DNS request to upstream DNS server (Cloudflare)"""
+        try:
+            # Send DNS query to Cloudflare DNS
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.settimeout(2.0)
+
+            # Send the request
+            sock.sendto(request.pack(), (self.upstream_dns, 53))
+
+            # Receive the response
+            data, _ = sock.recvfrom(8192)
+            sock.close()
+
+            # Parse the DNS response
+            response = DNSRecord.parse(data)
+            return response
+
+        except socket.timeout:
+            print(f"[TIMEOUT] DNS query to {self.upstream_dns} timed out")
+            return None
+        except Exception as e:
+            print(f"[ERROR] DNS forwarding failed: {e}")
+            return None
+
+    def is_blocked(self, domain):
+        """Check if domain is in blocklist (uses enhanced matching with subdomain support)"""
+        return is_blocked(domain, self.blocklist)
 
     def get_stats(self):
         return {
