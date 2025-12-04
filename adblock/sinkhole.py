@@ -63,7 +63,7 @@ class AdBlockResolver(BaseResolver):
                         ip = str(rr.rdata)
                         self.ip_to_domain[ip] = domain
                         print(f"[MAPPING] {ip} -> {domain}")
-            
+
             return response
         except Exception as e:
             print(f"[ERROR] Failed to forward DNS query: {e}")

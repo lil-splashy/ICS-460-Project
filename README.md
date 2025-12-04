@@ -117,6 +117,7 @@ If the domain is present in `blocklist.txt` (or matches a blocked subdomain rule
 - `blocklist.txt` - add or remove domains you want to block. The loader supports subdomain matching (example.com will match ads.example.com). Follow format "0.0.0.0 {url}"
 - `benign_domains.txt` - domains that should be treated as allowed (the code may auto-add allowed queries here).
 - `adblock/sinkhole.py` - change `upstream_dns` to use a different resolver (e.g. Google @ 8.8.8.8)
+- If you edit any of these files, make sure to scp them to the server before running the sinkhole.
 
 
 
