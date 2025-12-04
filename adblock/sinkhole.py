@@ -19,7 +19,7 @@ class AdBlockResolver(BaseResolver):
         self.blocked_count = 0
         self.allowed_count = 0
         self.ip_to_domain = {}
-        self.reporter = reporter  # ADD THIS LINE
+        self.reporter = reporter  
 
     def resolve(self, request, handler):
         reply = request.reply()
@@ -94,73 +94,3 @@ class DNSSinkholeServer:
         return self.resolver.get_stats()
 
 
-if __name__ == "__main__":
-
-
-
-   
-
-    if os.geteuid() != 0:
-        print("This script must be run as root (sudo)")
-        sys.exit(1)
-
-    blocklist_path = os.path.join(os.path.dirname(__file__), "..", "blocklist.txt")
-    blocklist_path = os.path.abspath(blocklist_path)
-
-    try:
-        blocklist = load_blocklist(blocklist_path)
-        print(f"Loaded {len(blocklist)} blocked domains")
-    except FileNotFoundError:
-        print(f"Error: Blocklist file not found at {blocklist_path}")
-        sys.exit(1)
-
-
-    # create server
-    server = DNSSinkholeServer(blocklist, host="0.0.0.0", port=53)
-    # create sniffer
-    sniffer = NetworkSniffer(host="0.0.0.0", resolver=server.resolver)
-    # create reporter
-    reporter = DNSReporter(server.resolver, sniffer=sniffer)
-    # link reporter
-    server.resolver.reporter = reporter
-
-
-
-    try:
-        print("\n[Server] Starting DNS Sinkhole at 0.0.0.0:53")
-
-        server.start()
-        time.sleep(1)
-
-        reporter = DNSReporter(server, sniffer=sniffer)
-        print_banner()
-        sniffer_thread = threading.Thread(target=server.start_sniffer, daemon=True)
-        sniffer_thread.start()
-        time.sleep(0.5)
-
-        print("Monitoring DNS Traffic through 18.116.242.142")
-        # Command Loop
-        while True:
-            cmd = input("\n> ").strip().lower()
-    
-            if cmd == 'stats':
-                reporter.print_summary()
-            elif cmd == 'report':
-                reporter.print_full_report()
-            elif cmd == 'blocked':
-                reporter.print_top_blocked()
-            elif cmd == 'allowed':
-                reporter.print_top_allowed()
-            elif cmd == 'export':
-                reporter.export_csv()
-            elif cmd == 'clear':
-                os.system('clear' if os.name != 'nt' else 'cls')
-            elif cmd == 'exit':
-                break
-
-    except KeyboardInterrupt:
-        pass
-    finally:
-        server.stop()
-        sniffer.stop()
-        print("Server stopped.")
