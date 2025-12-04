@@ -85,8 +85,34 @@ def run_traffic_demo(duration=60, packet_rate=2.0, dns_server="0.0.0.0", dns_por
     print(f"Target DNS: {dns_server}:{dns_port}")
     print("Generating DNS queries to test ad blocking...")
     print("="*70 + "\n")
-    
-    
+
+    # Load domain lists
+    import os
+    from blocklist import load_blocklist, load_benign_list
+
+    blocklist_path = os.path.join(os.path.dirname(__file__), "..", "blocklist.txt")
+    blocklist_path = os.path.abspath(blocklist_path)
+
+    benign_path = os.path.join(os.path.dirname(__file__), "..", "benign_domains.txt")
+    benign_path = os.path.abspath(benign_path)
+
+    # Load ad domains from blocklist
+    try:
+        blocklist = load_blocklist(blocklist_path)
+        # Use a random sample from the blocklist
+        ad_domains = random.sample(list(blocklist), min(100, len(blocklist)))
+    except FileNotFoundError:
+        print(f"Error: Blocklist not found at {blocklist_path}")
+        return
+    except ValueError:
+        # If blocklist is empty
+        ad_domains = []
+
+    # Load benign domains
+    benign_domains = list(load_benign_list(benign_path))
+    if not benign_domains:
+        # If no benign domains exist, use some common ones
+        benign_domains = ["google.com", "github.com", "wikipedia.org", "reddit.com", "twitter.com"]
 
     print(f"Loaded {len(ad_domains)} ad domains and {len(benign_domains)} benign domains\n")
 
@@ -128,15 +154,34 @@ def run_traffic_demo(duration=60, packet_rate=2.0, dns_server="0.0.0.0", dns_por
     print(f"Actual rate: {query_count/elapsed:.2f} queries/second")
     print("="*70)
 
-def run_quick_test(dns_server="127.0.0.1", dns_port=53):
+def run_quick_test(dns_server="0.0.0.0", dns_port=53):
     """Send a few test DNS queries to verify setup"""
 
     print("="*70)
     print("QUICK DNS TEST")
     print("="*70 + "\n")
 
-    ad_domains = generate_known_ad_domains()
-    benign_domains = generate_benign_domains()
+    # Load domain lists
+    import os
+    from blocklist import load_blocklist, load_benign_list
+
+    blocklist_path = os.path.join(os.path.dirname(__file__), "..", "blocklist.txt")
+    blocklist_path = os.path.abspath(blocklist_path)
+
+    benign_path = os.path.join(os.path.dirname(__file__), "..", "benign_domains.txt")
+    benign_path = os.path.abspath(benign_path)
+
+    # Load some ad domains
+    try:
+        blocklist = load_blocklist(blocklist_path)
+        ad_domains = random.sample(list(blocklist), min(5, len(blocklist)))
+    except (FileNotFoundError, ValueError):
+        ad_domains = []
+
+    # Load benign domains
+    benign_domains = list(load_benign_list(benign_path))
+    if not benign_domains:
+        benign_domains = ["google.com", "github.com", "wikipedia.org"]
 
     test_queries = []
     # Add some ad domains
@@ -159,15 +204,34 @@ def run_quick_test(dns_server="127.0.0.1", dns_port=53):
 
     print("="*70)
 
-def run_burst_test(burst_size=10, dns_server="127.0.0.1", dns_port=53):
+def run_burst_test(burst_size=10, dns_server="0.0.0.0", dns_port=53):
     """Send a burst of DNS queries quickly"""
 
     print("="*70)
     print(f"BURST TEST - Sending {burst_size} DNS queries")
     print("="*70 + "\n")
 
-    ad_domains = generate_known_ad_domains()
-    benign_domains = generate_benign_domains()
+    # Load domain lists
+    import os
+    from blocklist import load_blocklist, load_benign_list
+
+    blocklist_path = os.path.join(os.path.dirname(__file__), "..", "blocklist.txt")
+    blocklist_path = os.path.abspath(blocklist_path)
+
+    benign_path = os.path.join(os.path.dirname(__file__), "..", "benign_domains.txt")
+    benign_path = os.path.abspath(benign_path)
+
+    # Load domains
+    try:
+        blocklist = load_blocklist(blocklist_path)
+        ad_domains = random.sample(list(blocklist), min(20, len(blocklist)))
+    except (FileNotFoundError, ValueError):
+        ad_domains = []
+
+    benign_domains = list(load_benign_list(benign_path))
+    if not benign_domains:
+        benign_domains = ["google.com", "github.com", "wikipedia.org"]
+
     all_domains = ad_domains + benign_domains
 
     for i in range(burst_size):
