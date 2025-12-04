@@ -28,10 +28,8 @@ class AdBlockResolver(BaseResolver):
         domain = str(request.q.qname).lower().rstrip(".")
         qtype = QTYPE[request.q.qtype]
 
-        # Check and categorize the domain
         category = check_and_categorize(domain, self.blocklist, self.benign_path)
 
-        # blocked domain
         if category == "blocked":
             self.blocked_count += 1
             print(f"[BLOCKED] {domain} ({qtype})")
@@ -47,7 +45,6 @@ class AdBlockResolver(BaseResolver):
                 pass
             return reply
 
-        # not blocked - benign (automatically added to benign list)
         self.allowed_count += 1
         print(f"[ALLOWED] {domain} ({qtype}) - added to benign list")
 

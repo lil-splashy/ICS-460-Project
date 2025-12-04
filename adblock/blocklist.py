@@ -75,6 +75,5 @@ def check_and_categorize(domain: str, blocklist: Set[str], benign_path: str) -> 
     if is_blocked(domain, blocklist):
         return "blocked"
     else:
-        # Add to benign list
         add_to_benign_list(domain, benign_path)
         return "benign"
