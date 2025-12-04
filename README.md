@@ -83,5 +83,8 @@ nslookup google.com 18.116.242.142
 
 - ``stats``: Shows a summary of stats
 - ``report``: Shows the full report with top domains 
+- ``blocked``: Shows the top blocked domains
+- ``allowed``: Shows the top allowed domains
 - ``export``: Exports report to CSV file
+- ``clear``: Clears screen
 - ``exit``: Quits program
