@@ -26,7 +26,7 @@ class DNSReporter:
         print("DNS SINKHOLE SUMMARY REPORT")
         print("="*60)
         print(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"Uptime: {self._format_uptime(uptime)}")
+        print(f"Uptime: {self.format_uptime(uptime)}")
         print("-"*60)
         print(f"Total Queries:    {stats['total']:>8}")
         print(f"Blocked Queries:  {stats['blocked']:>8} ({self._percent(stats['blocked'], stats['total'])}%)")
@@ -101,7 +101,7 @@ class DNSReporter:
         print(f"\r[STATS] Queries: {stats['total']} | "
               f"Blocked: {stats['blocked']} | "
               f"Allowed: {stats['allowed']} | "
-              f"Uptime: {self._format_uptime(uptime)}", 
+              f"Uptime: {self.format_uptime(uptime)}", 
               end='', flush=True)
     
     def export_csv(self, filename="dns_report.csv"):
@@ -121,7 +121,7 @@ class DNSReporter:
             print(f"\nError exporting CSV: {e}")
     
 
-    def _format_uptime(seconds):
+    def format_uptime(seconds):
         """Format uptime in human-readable format"""
         hours = int(seconds // 3600)
         minutes = int((seconds % 3600) // 60)

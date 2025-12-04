@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import ipaddress
+from datetime import datetime
 import socket
 import threading
 from collections import defaultdict
@@ -8,7 +9,6 @@ import struct
 class Packet:
     def __init__(self, data):
         self.packet = data
-
         header = struct.unpack("<BBHHHBBH4s4s", self.packet[0:20])
 
         # Breaking down the header to identify traffic
@@ -16,6 +16,7 @@ class Packet:
         self.ihl = header[0] & 0xF
         # Type of Service
         self.tos = header[1]
+        self.protocol = header[6]
         # Source IP address
         self.src = header[8]
         # Desination IP address
@@ -192,6 +193,7 @@ class NetworkSniffer:
             else:
                 print(f"  {ip:15} : {count:>6} packets")
         print("="*60 + "\n")
+
 
 
 

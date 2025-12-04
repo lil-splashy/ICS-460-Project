@@ -86,13 +86,6 @@ class DNSSinkholeServer:
         self.server.start_thread()
 
 
-    def start_sniffer(self):
-        try:
-            sniff(self.host)
-        except Exception as e:
-            print(f"Sniffer error: {e}")
-
-
     def stop(self):
         if self.server:
             self.server.stop()
@@ -121,7 +114,17 @@ if __name__ == "__main__":
         print(f"Error: Blocklist file not found at {blocklist_path}")
         sys.exit(1)
 
+
+    # create server
     server = DNSSinkholeServer(blocklist, host="0.0.0.0", port=53)
+    # create sniffer
+    sniffer = NetworkSniffer(host="0.0.0.0", resolver=server.resolver)
+    # create reporter
+    reporter = DNSReporter(server.resolver, sniffer=sniffer)
+    # link reporter
+    server.resolver.reporter = reporter
+
+
 
     try:
         print("\n[Server] Starting DNS Sinkhole at 0.0.0.0:53")
@@ -156,5 +159,8 @@ if __name__ == "__main__":
                 break
 
     except KeyboardInterrupt:
+        pass
+    finally:
         server.stop()
+        sniffer.stop()
         print("Server stopped.")
