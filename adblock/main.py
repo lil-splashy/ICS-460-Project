@@ -53,11 +53,13 @@ if __name__ == "__main__":
         print("Monitoring DNS Traffic through 18.116.242.142")
         
         while True:
-            cmd = input("cmds: 'stats', 'report', or 'exit'\n")
+            cmd = input("cmds: 'stats', 'report', 'export' or 'exit'\n")
             if cmd.lower() == "stats":
                 reporter.print_summary()
             elif cmd.lower() == "report":
                 reporter.print_full_report()
+            elif cmd.lower() == "export":
+                reporter.export_csv()
             elif cmd.lower() == "exit":
                 break
             else:
