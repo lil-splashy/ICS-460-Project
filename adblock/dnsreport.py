@@ -121,12 +121,12 @@ class DNSReporter:
             print(f"\nError exporting CSV: {e}")
     
 
-    def format_uptime(seconds):
+    def format_uptime(self, seconds):
         """Format uptime in human-readable format"""
         hours = int(seconds // 3600)
         minutes = int((seconds % 3600) // 60)
         secs = int(seconds % 60)
-        
+
         if hours > 0:
             return f"{hours}h {minutes}m {secs}s"
         elif minutes > 0:
@@ -134,7 +134,7 @@ class DNSReporter:
         else:
             return f"{secs}s"
 
-    def _percent(part, total):
+    def _percent(self, part, total):
         """Calculate percentage safely"""
         if total == 0:
             return 0.0

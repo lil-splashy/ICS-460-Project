@@ -36,7 +36,7 @@ if __name__ == "__main__":
     sniffer = NetworkSniffer(host="0.0.0.0", resolver=server.resolver)
     
     # Create reporter
-    reporter = DNSReporter(server.resolver, sniffer=sniffer)
+    reporter = DNSReporter(server.resolver)
     
     # Link reporter to resolver
     server.resolver.reporter = reporter
@@ -53,13 +53,11 @@ if __name__ == "__main__":
         print("Monitoring DNS Traffic through 18.116.242.142")
         
         while True:
-            cmd = input("cmds: 'stats', 'report', 'combined', or 'exit'\n")
+            cmd = input("cmds: 'stats', 'report', or 'exit'\n")
             if cmd.lower() == "stats":
                 reporter.print_summary()
             elif cmd.lower() == "report":
                 reporter.print_full_report()
-            elif cmd.lower() == "combined":
-                reporter.print_combined_report()
             elif cmd.lower() == "exit":
                 break
             else:
