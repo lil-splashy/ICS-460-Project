@@ -129,12 +129,11 @@ if __name__ == "__main__":
         server.start()
         time.sleep(1)
 
-        ''' Start report handler '''
-        reporter = DNSReporter(server.resolver)
+        reporter = DNSReporter(server, sniffer=sniffer)
         print_banner()
-        # sniffer_thread = threading.Thread(target=server.start_sniffer, daemon=True)
-        # sniffer_thread.start()
-        # time.sleep(0.5)
+        sniffer_thread = threading.Thread(target=server.start_sniffer, daemon=True)
+        sniffer_thread.start()
+        time.sleep(0.5)
 
         print("Monitoring DNS Traffic through 18.116.242.142")
         # Command Loop
