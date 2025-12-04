@@ -13,6 +13,7 @@ if __name__ == "__main__":
     from blocklist import load_blocklist
     from sniffer import NetworkSniffer
     from dnsreport import DNSReporter, print_banner
+    from sinkhole import DNSSinkholeServer
 
     if os.geteuid() != 0:
         print("This script must be run as root (sudo)")
