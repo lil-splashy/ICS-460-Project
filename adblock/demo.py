@@ -8,7 +8,7 @@ import socket
 import struct
 import random
 import time
-from scapy.all import IP, TCP, UDP, Raw, send, conf
+from scapy.all import IP, TCP, UDP, Raw, send, conf, DNS, DNSQR
 
 # Disable verbose output from scapy
 conf.verb = 0
@@ -32,26 +32,46 @@ def generate_random_ip():
 
         return ip
 
-def generate_known_ad_ips():
-    """Generate IPs from known ad domains for testing"""
-    ad_ips = []
-
-    # Common ad server IPs (examples - these may change)
-    known_domains = [
+def generate_known_ad_domains():
+    """Return list of known ad domains for testing"""
+    return [
         "doubleclick.net",
         "googlesyndication.com",
-        "facebook.com",
+        "googleadservices.com",
         "ads.yahoo.com",
+        "facebook.com",
+        "pagead2.googlesyndication.com",
+        "adservice.google.com",
+        "static.ads-twitter.com",
+        "ads.reddit.com",
+        "ads.linkedin.com",
     ]
 
-    for domain in known_domains:
-        try:
-            ip = socket.gethostbyname(domain)
-            ad_ips.append(ip)
-        except:
-            pass
+def generate_benign_domains():
+    """Return list of benign domains for testing"""
+    return [
+        "google.com",
+        "github.com",
+        "stackoverflow.com",
+        "wikipedia.org",
+        "python.org",
+        "reddit.com",
+        "twitter.com",
+        "youtube.com",
+        "amazon.com",
+        "cloudflare.com",
+    ]
 
-    return ad_ips
+def send_dns_query(domain, dns_server="127.0.0.1", dns_port=53):
+    """Send a DNS query to the sinkhole server"""
+    try:
+        # Create DNS query packet
+        dns_packet = IP(dst=dns_server) / UDP(dport=dns_port) / DNS(rd=1, qd=DNSQR(qname=domain))
+        send(dns_packet, verbose=False)
+        return True
+    except Exception as e:
+        print(f"Error sending DNS query: {e}")
+        return False
 
 def generate_http_packet(dst_ip, dst_port=80, src_port=None):
     if src_port is None:
@@ -85,60 +105,55 @@ def generate_https_packet(dst_ip, dst_port=443, src_port=None):
 
     return packet
 
-def run_traffic_demo(duration=60, packet_rate=2.0):
+def run_traffic_demo(duration=60, packet_rate=2.0, dns_server="127.0.0.1", dns_port=53):
     """
-    Generate simulated network traffic
+    Generate simulated DNS traffic
 
     Args:
         duration: How long to run (seconds)
-        packet_rate: Packets per second
+        packet_rate: Queries per second
+        dns_server: DNS server address (default: 127.0.0.1)
+        dns_port: DNS server port (default: 53)
     """
 
     print("="*70)
-    print("NETWORK TRAFFIC SIMULATOR")
+    print("DNS TRAFFIC SIMULATOR")
     print("="*70)
     print(f"Duration: {duration}s")
-    print(f"Packet rate: {packet_rate} packets/second")
-    print("Generating packets with random IPs...")
-    print("The sniffer will perform reverse DNS lookups via Cloudflare")
+    print(f"Query rate: {packet_rate} queries/second")
+    print(f"Target DNS: {dns_server}:{dns_port}")
+    print("Generating DNS queries to test ad blocking...")
     print("="*70 + "\n")
 
-    # Get some known ad server IPs
-    known_ad_ips = generate_known_ad_ips()
-    if known_ad_ips:
-        print(f"Loaded {len(known_ad_ips)} known ad server IPs for testing\n")
+    # Get domain lists
+    ad_domains = generate_known_ad_domains()
+    benign_domains = generate_benign_domains()
+
+    print(f"Loaded {len(ad_domains)} ad domains and {len(benign_domains)} benign domains\n")
 
     start_time = time.time()
-    packet_count = 0
+    query_count = 0
     delay = 1.0 / packet_rate
 
     try:
         while time.time() - start_time < duration:
-            # 30% chance to use known ad IP, 70% random
-            if known_ad_ips and random.random() < 0.3:
-                dst_ip = random.choice(known_ad_ips)
-                source = "known ad server"
+            # 40% chance to query ad domain, 60% benign
+            if random.random() < 0.4:
+                domain = random.choice(ad_domains)
+                domain_type = "ad"
             else:
-                dst_ip = generate_random_ip()
-                source = "random"
+                domain = random.choice(benign_domains)
+                domain_type = "benign"
 
-            # Random choice between HTTP and HTTPS
-            if random.random() < 0.5:
-                packet = generate_http_packet(dst_ip)
-                protocol = "HTTP"
-            else:
-                packet = generate_https_packet(dst_ip)
-                protocol = "HTTPS"
+            query_count += 1
 
-            packet_count += 1
-
-            print(f"[Packet #{packet_count}] Sending {protocol} packet to {dst_ip} ({source})")
+            print(f"[Query #{query_count}] Querying {domain} ({domain_type})")
 
             try:
-                send(packet, verbose=False)
-                print(f"Sent successfully")
+                send_dns_query(domain, dns_server, dns_port)
+                print(f"  → Query sent")
             except Exception as e:
-                print(f"Error: {e}")
+                print(f"  → Error: {e}")
 
             time.sleep(delay)
 
@@ -150,58 +165,59 @@ def run_traffic_demo(duration=60, packet_rate=2.0):
     print("TRAFFIC GENERATION SUMMARY")
     print("="*70)
     print(f"Duration: {elapsed:.1f}s")
-    print(f"Packets sent: {packet_count}")
-    print(f"Actual rate: {packet_count/elapsed:.2f} packets/second")
+    print(f"DNS queries sent: {query_count}")
+    print(f"Actual rate: {query_count/elapsed:.2f} queries/second")
     print("="*70)
 
-def run_quick_test():
-    """Send a few test packets to verify setup"""
+def run_quick_test(dns_server="127.0.0.1", dns_port=53):
+    """Send a few test DNS queries to verify setup"""
 
     print("="*70)
-    print("QUICK PACKET TEST")
+    print("QUICK DNS TEST")
     print("="*70 + "\n")
 
-    test_ips = [
-        ("8.8.8.8", "Google DNS"),
-        ("1.1.1.1", "Cloudflare DNS"),
-        ("142.250.80.14", "Google"),
-    ]
+    ad_domains = generate_known_ad_domains()
+    benign_domains = generate_benign_domains()
 
-    # Add known ad IPs
-    ad_ips = generate_known_ad_ips()
-    for ip in ad_ips[:3]:
-        test_ips.append((ip, "Known ad server"))
+    test_queries = []
+    # Add some ad domains
+    for domain in ad_domains[:3]:
+        test_queries.append((domain, "ad domain"))
+    # Add some benign domains
+    for domain in benign_domains[:3]:
+        test_queries.append((domain, "benign"))
 
-    for dst_ip, description in test_ips:
-        print(f"Sending packet to {dst_ip} ({description})")
-
-        packet = generate_http_packet(dst_ip)
+    for domain, description in test_queries:
+        print(f"Querying {domain} ({description})")
 
         try:
-            send(packet, verbose=False)
-            print(f"Sent successfully\n")
+            send_dns_query(domain, dns_server, dns_port)
+            print(f"  → Query sent successfully\n")
         except Exception as e:
-            print(f"Error: {e}\n")
+            print(f"  → Error: {e}\n")
 
         time.sleep(1)
 
     print("="*70)
 
-def run_burst_test(burst_size=10):
-    """Send a burst of packets quickly"""
+def run_burst_test(burst_size=10, dns_server="127.0.0.1", dns_port=53):
+    """Send a burst of DNS queries quickly"""
 
     print("="*70)
-    print(f"BURST TEST - Sending {burst_size} packets")
+    print(f"BURST TEST - Sending {burst_size} DNS queries")
     print("="*70 + "\n")
 
-    for i in range(burst_size):
-        dst_ip = generate_random_ip()
-        packet = generate_http_packet(dst_ip)
+    ad_domains = generate_known_ad_domains()
+    benign_domains = generate_benign_domains()
+    all_domains = ad_domains + benign_domains
 
-        print(f"[{i+1}/{burst_size}] Sending to {dst_ip}")
+    for i in range(burst_size):
+        domain = random.choice(all_domains)
+
+        print(f"[{i+1}/{burst_size}] Querying {domain}")
 
         try:
-            send(packet, verbose=False)
+            send_dns_query(domain, dns_server, dns_port)
         except Exception as e:
             print(f"  Error: {e}")
 
@@ -231,17 +247,21 @@ def run_with_main():
         print(f"Error: Blocklist file not found at {blocklist_path}")
         sys.exit(1)
 
+    # Create reporter (need to create it before server to properly link)
+    # We'll initialize it with None and set resolver after
+    reporter = None
+
     # Create server
-    server = DNSSinkholeServer(blocklist, host="0.0.0.0", port=53)
+    server = DNSSinkholeServer(blocklist, host="0.0.0.0", port=53, reporter=None)
 
-    # Create sniffer
-    sniffer = NetworkSniffer(host="0.0.0.0", resolver=server.resolver)
-
-    # Create reporter
+    # Create reporter with the resolver
     reporter = DNSReporter(server.resolver)
 
     # Link reporter to resolver
     server.resolver.reporter = reporter
+
+    # Create sniffer
+    sniffer = NetworkSniffer(host="0.0.0.0", resolver=server.resolver)
 
     try:
         print("\n[Server] Starting DNS Sinkhole at 0.0.0.0:53")
