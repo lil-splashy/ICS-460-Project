@@ -70,7 +70,7 @@ sudo python3 adblock/main.py
 sudo python3 adblock/demo.py
 ```
 
-If you run `adblock/main.py` directly as a module, it will create a DNSSinkholeServer that listens on UDP port 53 by default and uses Cloudflare (1.1.1.1) as upstream.
+If you run `adblock/main.py` directly, it will create a DNSSinkholeServer that listens on UDP port 53 by default and uses Cloudflare (1.1.1.1) as upstream.
 
 
 ## Running the demo and tests (local or on server)
@@ -93,7 +93,7 @@ It supports the following modes (run with sudo when using interactive/main since
 
 ## How to test a single domain manually (nslookup / dig)
 
-From any machine that can reach the sinkhole (replace with your sinkhole IP):
+From any machine that can reach the sinkhole:
 
 PowerShell (Windows):
 
