@@ -68,7 +68,7 @@ chmod +x install.sh
 
 Run sinkhole server 
 ```powershell
-sudo python3 adblock/demo.py
+sudo python3 -m adblock.sinkhole
 ```
 
 From another machine or local, test queries
