@@ -30,7 +30,7 @@ if __name__ == "__main__":
     server = DNSSinkholeServer(blocklist, host="0.0.0.0", port=53)
     
     # Create sniffer
-    sniffer = NetworkSniffer(host="0.0.0.0", resolver=server.resolver)
+    sniffer = NetworkSniffer(host="127.0.0.1", resolver=server.resolver)
     
     # Create reporter
     reporter = DNSReporter(server.resolver)
