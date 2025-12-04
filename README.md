@@ -1,10 +1,9 @@
 # ICS-460-Project
 Aidan Mahlberg + Benjamin Wall
-# Project Proposal:
+
+# Initial project proposal:
 
 - Network-wide Ad-block
-
-- Initial Proposal:
 
 Similar to Pi-Hole, `https://docs.pi-hole.net/`, create a network that filters
 advertisements before they reach end-user devices. We propose to create our own DNS as
