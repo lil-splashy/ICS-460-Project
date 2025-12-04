@@ -8,7 +8,9 @@ import time
 from scapy.all import IP, TCP, Raw, conf
 from blocklist import load_blocklist, load_benign_list
 conf.verb = 0
-
+'''
+Functions to generate and send DNS queries and HTTP/HTTPS packets for demo purposes.
+'''
 def generate_random_ip():
     while True:
         ip = f"{random.randint(1, 223)}.{random.randint(0, 255)}.{random.randint(0, 255)}.{random.randint(1, 254)}"
@@ -25,7 +27,7 @@ def generate_random_ip():
 
         return ip
 
-
+# Send a DNS query to the sinkhole and parse its response
 def send_dns_query(domain, dns_server, dns_port=53):
     try:
         from dnslib import DNSRecord
@@ -51,6 +53,7 @@ def send_dns_query(domain, dns_server, dns_port=53):
         print(f"Error sending DNS query: {e}")
         return False
 
+# generate random HTTP GET packet to send
 def generate_http_packet(dst_ip, dst_port=80, src_port=None):
     if src_port is None:
         src_port = random.randint(49152, 65535)
@@ -60,7 +63,7 @@ def generate_http_packet(dst_ip, dst_port=80, src_port=None):
     packet = packet / Raw(load=http_request)
 
     return packet
-
+# https
 def generate_https_packet(dst_ip, dst_port=443, src_port=None):
     if src_port is None:
         src_port = random.randint(49152, 65535)
@@ -148,100 +151,9 @@ def run_traffic_demo(duration=60, packet_rate=2.0, dns_server="127.0.0.1", dns_p
     print(f"Actual rate: {query_count/elapsed:.2f} queries/second")
     print("="*70)
 
-def run_quick_test(dns_server="127.0.0.1", dns_port=53):
-    """Send a few test DNS queries to verify setup"""
-
-    print("="*70)
-    print("QUICK DNS TEST")
-    print("="*70 + "\n")
-
-    # Load domain lists
-    
-
-    blocklist_path = os.path.join(os.path.dirname(__file__), "..", "blocklist.txt")
-    blocklist_path = os.path.abspath(blocklist_path)
-
-    benign_path = os.path.join(os.path.dirname(__file__), "..", "benign_domains.txt")
-    benign_path = os.path.abspath(benign_path)
-
-    # Load some ad domains
-    try:
-        blocklist = load_blocklist(blocklist_path)
-        ad_domains = random.sample(list(blocklist), min(5, len(blocklist)))
-    except (FileNotFoundError, ValueError):
-        ad_domains = []
-
-    # Load benign domains
-    benign_domains = list(load_benign_list(benign_path))
-    if not benign_domains:
-        benign_domains = ["google.com", "github.com", "wikipedia.org"]
-
-    test_queries = []
-    # Add some ad domains
-    for domain in ad_domains[:3]:
-        test_queries.append((domain, "ad domain"))
-    # Add some benign domains
-    for domain in benign_domains[:3]:
-        test_queries.append((domain, "benign"))
-
-    for domain, description in test_queries:
-        print(f"Querying {domain} ({description})")
-
-        try:
-            send_dns_query(domain, dns_server, dns_port)
-            print(f"  → Query sent successfully\n")
-        except Exception as e:
-            print(f"  → Error: {e}\n")
-
-        time.sleep(1)
-
-    print("="*70)
-
-def run_burst_test(burst_size=10, dns_server="127.0.0.1", dns_port=53):
-
-    print("="*70)
-    print(f"BURST TEST - Sending {burst_size} DNS queries")
-    print("="*70 + "\n")
-
-
-    import os
-    from blocklist import load_blocklist, load_benign_list
-
-    blocklist_path = os.path.join(os.path.dirname(__file__), "..", "blocklist.txt")
-    blocklist_path = os.path.abspath(blocklist_path)
-    benign_path = os.path.join(os.path.dirname(__file__), "..", "benign_domains.txt")
-    benign_path = os.path.abspath(benign_path)
-
-    try:
-        blocklist = load_blocklist(blocklist_path)
-        ad_domains = random.sample(list(blocklist), min(20, len(blocklist)))
-    except (FileNotFoundError, ValueError):
-        ad_domains = []
-
-    benign_domains = list(load_benign_list(benign_path))
-    if not benign_domains:
-        benign_domains = ["google.com", "github.com", "wikipedia.org"]
-
-    all_domains = ad_domains + benign_domains
-
-    for i in range(burst_size):
-        domain = random.choice(all_domains)
-
-        print(f"[{i+1}/{burst_size}] Querying {domain}")
-
-        try:
-            send_dns_query(domain, dns_server, dns_port)
-        except Exception as e:
-            print(f"  Error: {e}")
-
-        time.sleep(0.2)
-
-    print("\n" + "="*70)
-    print("Burst complete!")
-    print("="*70)
 
 def run_with_main():
-    """Run the demo with the main DNS sinkhole server for interactive statistics"""
+    # Run the demo with the main DNS sinkhole server
     import os
     import sys
     import threading
@@ -353,39 +265,17 @@ if __name__ == "__main__":
         print("Packet injection requires root privileges")
         sys.exit(1)
 
-    # Parse command line arguments
-    if len(sys.argv) > 1:
-        mode = sys.argv[1]
-    else:
-        mode = "interactive"
-
     print("\n")
 
-    if mode == "interactive" or mode == "main":
-        print("Starting interactive mode with DNS sinkhole...")
-        run_with_main()
+    run_with_main()
 
-    elif mode == "quick":
-        print("Running quick test...")
-        run_quick_test()
-
-    elif mode == "burst":
-        burst_size = 10
-        if len(sys.argv) > 2:
-            burst_size = int(sys.argv[2])
-        print(f"Running burst test with {burst_size} packets...")
-        run_burst_test(burst_size)
-
-
-
-    else:
-        print("\nInteractive mode commands:")
-        print("  stats      - Show summary statistics")
-        print("  report     - Show full report")
-        print("  blocked    - Show top blocked domains")
-        print("  allowed    - Show top allowed domains")
-        print("  export     - Export report to CSV")
-        print("  generate   - Start traffic generation")
-        print("  clear      - Clear screen")
-        print("  exit       - Stop and exit")
-        print("\nNote: This script requires root privileges for packet injection")
+    print("\nInteractive mode commands:")
+    print("  stats      - Show summary statistics")
+    print("  report     - Show full report")
+    print("  blocked    - Show top blocked domains")
+    print("  allowed    - Show top allowed domains")
+    print("  export     - Export report to CSV")
+    print("  generate   - Start traffic generation")
+    print("  clear      - Clear screen")
+    print("  exit       - Stop and exit")
+    print("\nNote: This script requires root privileges for packet injection")

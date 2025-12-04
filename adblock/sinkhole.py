@@ -11,7 +11,9 @@ from dnslib import DNSRecord, RR, QTYPE, A
 from dnslib.server import DNSServer, BaseResolver
 from sniffer import NetworkSniffer
 from dnsreport import DNSReporter, print_banner
-
+'''
+DNS Sinkhole Server that blocks ad domains by rerouting to 0.0.0.0 and forwards legitimate queries to cloudflare DNS.
+'''
 class AdBlockResolver(BaseResolver):
 
     def __init__(self, blocklist, reporter=None, benign_path=None):

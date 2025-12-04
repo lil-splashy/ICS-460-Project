@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 from typing import Set
 import os
-
+'''
+Functions to load and manage blocklist and benign domain list.
+'''
 def load_blocklist(path: str) -> Set[str]:
     entries: Set[str] = set()
     with open(path, "r", encoding="utf-8") as fh:

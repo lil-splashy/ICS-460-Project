@@ -5,7 +5,11 @@ import socket
 import threading
 from collections import defaultdict
 import struct
-
+'''
+NetworkSniffer class to capture and analyze network packets.
+Uses raw sockets to listen for TCP, UDP, and ICMP packets.
+Extracts source/destination IPs and protocol types.
+'''
 class Packet:
     def __init__(self, data):
         self.packet = data

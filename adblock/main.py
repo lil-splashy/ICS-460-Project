@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 
 """
-Running Demo from the main file. 
+Main script to run the DNS Sinkhole server.
 """
-
-
 if __name__ == "__main__":
     import os
     import sys
     import time
-    import threading
     from blocklist import load_blocklist
-    from sniffer import NetworkSniffer, Packet
+    from sniffer import NetworkSniffer
     from dnsreport import DNSReporter, print_banner
     from sinkhole import DNSSinkholeServer
 

@@ -3,7 +3,11 @@ import time
 from datetime import datetime
 from collections import defaultdict
 
-
+'''
+DNSReporter class to generate reports on DNS sinkhole activity.
+Tracks blocked and allowed domains, provides summary statistics,
+and can export data to CSV.
+'''
 class DNSReporter:
     
     def __init__(self, resolver):
