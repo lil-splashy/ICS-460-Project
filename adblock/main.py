@@ -11,7 +11,7 @@ if __name__ == "__main__":
     import time
     import threading
     from blocklist import load_blocklist
-    from sniffer import NetworkSniffer
+    from sniffer import NetworkSniffer, Packet
     from dnsreport import DNSReporter, print_banner
     from sinkhole import DNSSinkholeServer
 
