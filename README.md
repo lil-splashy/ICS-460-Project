@@ -1,10 +1,9 @@
 # ICS-460-Project
 Aidan Mahlberg + Benjamin Wall
-# Project Proposal:
+
+# Initial project proposal:
 
 - Network-wide Ad-block
-
-- Initial Proposal:
 
 Similar to Pi-Hole, `https://docs.pi-hole.net/`, create a network that filters
 advertisements before they reach end-user devices. We propose to create our own DNS as
@@ -32,16 +31,16 @@ Top-level files:
 Inside `adblock/`:
 - `sinkhole.py` - DNSSinkholeServer and AdBlockResolver classes. Resolves queries by checking the blocklist and either returning 0.0.0.0 for blocked A-records or forwarding the query to an upstream resolver (Cloudflare 1.1.1.1). Keeps simple statistics and a mapping of resolved IP -> domain.
 - `sniffer.py` - NetworkSniffer that listens for network traffic and correlates IP <-> domain using the resolver's mapping. Exports CSVs for later analysis.
-- `demo.py` - Demo and test harness. Can run an interactive sinkhole + CLI, or generate DNS traffic (quick, burst, demo modes) against a target DNS server.
+- `demo.py` - Demo and test harness. Can run an interactive sinkhole + CLI, or generate DNS traffic against the DNS server.
 - `dnsreport.py` - Reporter that aggregates allowed/blocked counts and prints reports and top lists.
 - `blocklist.py` - Helpers to load blocklist and benign lists and perform matching logic.
 
 
 ## Quick start (Linux host / server)
 
-These instructions assume you will run the sinkhole on a Linux machine (e.g. the provided EC2 t3.micro). The sinkhole needs to bind to UDP port 53 and therefore requires root privileges.
+These instructions assume you will run the sinkhole on a Linux machine (e.g. the provided EC2 t3.micro @ 18.116.242.142). The sinkhole needs to bind to UDP port 53 and therefore requires root privileges.
 
-1. Upload any udpated local files to server
+1. Upload any updated local files to server
 
 ```powershell
 scp -i "sinkhole-key.pem" -r C:\..\ICS-460-Project ubuntu@18.116.242.142:~/ICS-460-Project/
@@ -52,6 +51,7 @@ scp -i "sinkhole-key.pem" -r C:\..\ICS-460-Project ubuntu@18.116.242.142:~/ICS-4
 ```powershell
 ssh -i "sinkhole-key.pem" ubuntu@18.116.242.142
 ```
+Type 'exit' to leave the server when done.
 
 3. Install dependencies (first run):
 
@@ -71,7 +71,7 @@ sudo python3 adblock/main.py
 sudo python3 adblock/demo.py
 ```
 
-If you run `adblock/main.py` directly as a module, it will create a DNSSinkholeServer that listens on UDP port 53 by default and uses Cloudflare (1.1.1.1) as upstream.
+If you run `adblock/main.py` directly, it will create a DNSSinkholeServer that listens on UDP port 53 by default and uses Cloudflare (1.1.1.1) as upstream.
 
 
 ## Running the demo and tests (local or on server)
@@ -94,7 +94,7 @@ It supports the following modes (run with sudo when using interactive/main since
 
 ## How to test a single domain manually (nslookup / dig)
 
-From any machine that can reach the sinkhole (replace with your sinkhole IP):
+From any machine that can reach the sinkhole:
 
 PowerShell (Windows):
 
@@ -118,6 +118,7 @@ If the domain is present in `blocklist.txt` (or matches a blocked subdomain rule
 - `blocklist.txt` - add or remove domains you want to block. The loader supports subdomain matching (example.com will match ads.example.com). Follow format "0.0.0.0 {url}"
 - `benign_domains.txt` - domains that should be treated as allowed (the code may auto-add allowed queries here).
 - `adblock/sinkhole.py` - change `upstream_dns` to use a different resolver (e.g. Google @ 8.8.8.8)
+- If you edit any of these files, make sure to scp them to the server before running the sinkhole.
 
 
 
