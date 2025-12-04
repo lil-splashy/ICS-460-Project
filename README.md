@@ -51,6 +51,7 @@ scp -i "sinkhole-key.pem" -r C:\..\ICS-460-Project ubuntu@18.116.242.142:~/ICS-4
 ```powershell
 ssh -i "sinkhole-key.pem" ubuntu@18.116.242.142
 ```
+Type 'exit' to leave the server when done.
 
 3. Install dependencies (first run):
 
