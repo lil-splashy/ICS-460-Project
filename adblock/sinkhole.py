@@ -18,7 +18,7 @@ class AdBlockResolver(BaseResolver):
 
     def __init__(self, blocklist, reporter=None, benign_path=None):
         self.blocklist = blocklist
-        self.upstream_dns = "1.1.1.1"  # Cloudflare DNS
+        self.upstream_dns = "1.1.1.1"  
         self.blocked_count = 0
         self.allowed_count = 0
         self.ip_to_domain = {}
@@ -38,7 +38,7 @@ class AdBlockResolver(BaseResolver):
 
             if self.reporter:
                 self.reporter.log_blocked(domain)
-
+ 
             if request.q.qtype == QTYPE.A:
                 reply.add_answer(
                     RR(rname=request.q.qname, rtype=QTYPE.A, rdata=A("0.0.0.0"), ttl=60)

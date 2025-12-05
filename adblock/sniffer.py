@@ -18,8 +18,6 @@ class Packet:
         # Breaking down the header to identify traffic
         self.ver = header[0] >> 4
         self.ihl = header[0] & 0xF
-        # Type of Service
-        self.tos = header[1]
         self.protocol = header[6]
         # Source IP address
         self.src = header[8]
@@ -89,7 +87,7 @@ class NetworkSniffer:
             tcp_socket.settimeout(0.1)
             self.sockets.append(('TCP', tcp_socket))
             
-            # UDP socket (for DNS traffic)
+            # UDP socket
             udp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_UDP)
             udp_socket.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
             udp_socket.settimeout(0.1)

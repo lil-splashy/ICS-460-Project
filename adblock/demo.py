@@ -6,7 +6,6 @@ import struct
 import random
 import time
 from scapy.all import IP, TCP, Raw, conf
-from blocklist import load_blocklist, load_benign_list
 conf.verb = 0
 '''
 Functions to generate and send DNS queries and HTTP/HTTPS packets for demo purposes.
